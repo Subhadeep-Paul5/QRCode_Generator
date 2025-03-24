@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Code Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['Playfair Display', 'serif'],
+              sans: ['Source Sans Pro', 'sans-serif'],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-black text-white font-serif flex items-center justify-center md:min-h-screen p-6">
+
+    <div class="max-w-md w-full flex flex-col space-y-6 items-center">
+
+      <div class="text-center mt-10 md:mt-0">
+        <h1 class="text-5xl font-bold mb-2">QR Code Generator</h1>
+        <p class="text-gray-400">Generate QR Codes with your URLs</p>
+      </div>
+      
+      <input
+        type="text"
+        id="urlInput"
+        placeholder="Paste your URL here..."
+        aria-label="URL input"
+        class="w-full p-4 bg-transparent border border-gray-400 rounded-md focus:outline-none focus:border-white text-white placeholder-gray-400 transition duration-300"
+      />
+
+      <button
+        onclick="generateQRCode()"
+        aria-label="Generate QR code"
+        class="border border-white text-white px-6 py-2 rounded-md hover:bg-white hover:text-black transition duration-300 w-full"
+      >
+        Generate
+      </button>
+
+      <div id="qrCodeContainer" class="hidden flex flex-col items-center space-y-4">
+        <img id="qrCodeImage" src="" alt="Generated QR Code" class="w-64 h-64" />
+        <button
+          id="downloadBtn"
+          onclick="downloadQR()"
+          aria-label="Download QR code"
+          class="border border-white text-white px-4 py-1 rounded-md hover:bg-white hover:text-black transition duration-300 w-full"
+        >
+          Download Your QR
+        </button>
+      </div>
+
+    </div>
+
+    <script>
+      function generateQRCode() {
+        const url = document.getElementById('urlInput').value.trim();
+        const qrCodeContainer = document.getElementById('qrCodeContainer');
+        const qrCodeImage = document.getElementById('qrCodeImage');
+
+        
+        if (!url || !/^https?:\/\//i.test(url)) {
+          alert('Please enter a valid URL starting with http:// or https://');
+          return;
+        }
+
+        const apiURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+        qrCodeImage.src = apiURL;
+        qrCodeImage.onload = () => {
+          qrCodeContainer.classList.remove('hidden');
+        };
+      }
+
+      function downloadQR() {
+        const qrImageSrc = document.getElementById('qrCodeImage').src;
+
+        fetch(qrImageSrc)
+          .then(response => response.blob())
+          .then(blob => {
+            const blobURL = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobURL;
+            link.download = 'QRCode.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobURL);
+          })
+          .catch(err => {
+            alert('Failed to download QR code!');
+            console.error(err);
+          });
+      }
+    </script>
+
+  </body>
+  </html>
